@@ -92,7 +92,7 @@ var WorldScene = new Phaser.Class({
             for(let i = 0; i < 1; i++){
               let x = Phaser.Math.RND.between(this.physics.world.bounds.width+32, this.physics.world.bounds.width);
               let y = Phaser.Math.RND.between(0, this.physics.world.bounds.height);
-              let move = Phaser.Math.RND.between(-75, -150);
+              let move = Phaser.Math.RND.between(-125, -150);
               this.rocks = this.physics.add.sprite(x, y, 'comet');
               //this.rocks.create(x, y, 'comet');
               this.rocks.displayWidth = config.width *.07;
@@ -107,7 +107,7 @@ var WorldScene = new Phaser.Class({
             for(let i = 0; i < 2; i++){
               let x = Phaser.Math.RND.between(this.physics.world.bounds.width+32, this.physics.world.bounds.width);
               let y = Phaser.Math.RND.between(0, this.physics.world.bounds.height);
-              let move = Phaser.Math.RND.between(-100, -175);
+              let move = Phaser.Math.RND.between(-150, -225);
               this.rocks = this.physics.add.sprite(x, y, 'comet');
               //this.rocks.create(x, y, 'comet');
               this.rocks.displayWidth = config.width *.07;
@@ -141,7 +141,7 @@ var WorldScene = new Phaser.Class({
             for(let i = 0; i < 1; i++){
               let enemyX = Phaser.Math.RND.between(this.physics.world.bounds.width+32, this.physics.world.bounds.width);
               let enemyY = Phaser.Math.RND.between(20,this.physics.world.bounds.height-20);
-              var enemyMove = Phaser.Math.RND.between(-45, -55);
+              var enemyMove = Phaser.Math.RND.between(-75, -110);
               this.enemyRedOne = this.physics.add.sprite(enemyX, enemyY, 'enemyRedOne', 3);
               this.enemyRedOne.displayWidth = config.width *.05;
               this.enemyRedOne.scaleY = this.enemyRedOne.scaleX;
@@ -156,7 +156,7 @@ var WorldScene = new Phaser.Class({
           for(let i = 0; i < 2; i++){
             let enemyX = Phaser.Math.RND.between(this.physics.world.bounds.width+32, this.physics.world.bounds.width);
             let enemyY = Phaser.Math.RND.between(20,this.physics.world.bounds.height-20);
-            var enemyMove = Phaser.Math.RND.between(-55, -75);
+            var enemyMove = Phaser.Math.RND.between(-110, -150);
             this.enemyRedOne = this.physics.add.sprite(enemyX, enemyY, 'enemyRedOne', 3);
             this.enemyRedOne.displayWidth = config.width *.05;
             this.enemyRedOne.scaleY = this.enemyRedOne.scaleX;
@@ -287,7 +287,7 @@ var WorldScene = new Phaser.Class({
           this.physics.add.overlap(this.player, this.powerUpDual, dualGuns, null, this);
         }
 
-        this.time.addEvent({delay: Phaser.Math.RND.between(1000, 5000), callback: powerUps, callbackScope: this, loop: true});
+        this.time.addEvent({delay: Phaser.Math.RND.between(1000*10, 7000*10), callback: powerUps, callbackScope: this, loop: true});
 
         function dualGuns(player, powerUpDual){
             this.time.delayedCall(200, function(){
@@ -299,7 +299,9 @@ var WorldScene = new Phaser.Class({
             console.log("collected");
             this.bulletsTwo.setActive(true);
             this.player.setTexture('player', 2);
-
+            score += 20;
+            scoreText.setText('Score: ' + score);
+            
           }
 
         //allow movement

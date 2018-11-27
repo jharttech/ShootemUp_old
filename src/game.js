@@ -52,7 +52,7 @@ var WorldScene = new Phaser.Class({
         var scoreText;
 
 
-        scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '12px', fill: '#FFF' });
+        scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '20px', fill: '#FFF' });
 
 
         //add player sprite
@@ -61,6 +61,8 @@ var WorldScene = new Phaser.Class({
         this.physics.world.bounds.width = config.width;
         this.physics.world.bounds.height = config.height;
         this.player.setCollideWorldBounds(true);
+        //scale player and setCollider
+        this.player.body.setSize(12);
         this.player.displayWidth = config.width *.07;
         this.player.scaleY = this.player.scaleX;
 
@@ -69,19 +71,19 @@ var WorldScene = new Phaser.Class({
         this.bullets.setVisible(false);
         this.bullets.setVelocityX(0);
 
-
+        //add dual bullet sprite
         this.bulletsTwo = this.physics.add.sprite(this.player.x, this.player.y, 'bullet');
         this.bulletsTwo.setVisible(false);
         this.bulletsTwo.setVelocityX(0);
         this.bulletsTwo.setActive(false);
-        //add collision box for easy destroy
+
+        //add collision box for easy destroy of old objects
         function leftBoundBox(){
           this.leftBound = this.physics.add.group();
           this.leftBound.create(0, config.height/2, 'boundbox');
-          //this.leftBound.setVisible(false);
-          //this.physics.add.overlap(this.rocks, this.leftBound, destroyObjRock, null, this);
         }
 
+        //check for need to destroy old objects
         this.time.addEvent({delay: 0, callback: leftBoundBox, callbackScope: this, loop: false});
 
 
@@ -94,7 +96,6 @@ var WorldScene = new Phaser.Class({
               let y = Phaser.Math.RND.between(0, this.physics.world.bounds.height);
               let move = Phaser.Math.RND.between(-125, -150);
               this.rocks = this.physics.add.sprite(x, y, 'comet');
-              //this.rocks.create(x, y, 'comet');
               this.rocks.displayWidth = config.width *.07;
               this.rocks.scaleY = this.rocks.scaleX;
               this.rocks.setVelocityX(move);
@@ -109,7 +110,6 @@ var WorldScene = new Phaser.Class({
               let y = Phaser.Math.RND.between(0, this.physics.world.bounds.height);
               let move = Phaser.Math.RND.between(-150, -225);
               this.rocks = this.physics.add.sprite(x, y, 'comet');
-              //this.rocks.create(x, y, 'comet');
               this.rocks.displayWidth = config.width *.07;
               this.rocks.scaleY = this.rocks.scaleX;
               this.rocks.setVelocityX(move);
@@ -120,6 +120,7 @@ var WorldScene = new Phaser.Class({
             }
           }
         }
+
         //random spawn of comets
         this.time.addEvent({delay: 1000, callback: comets, callbackScope: this, loop: true});
 
@@ -169,8 +170,27 @@ var WorldScene = new Phaser.Class({
           }
         }
       }
+
         //random spawn red enemy
-          this.time.addEvent({delay: 1000, callback: enemyRed, callbackScope: this, loop: true});
+        this.time.addEvent({delay: 1000, callback: enemyRed, callbackScope: this, loop: true});
+
+        //create powerup Dual
+        function powerUps(){
+          this.powerUpDual = this.physics.add.group();
+          let powerUpX = Phaser.Math.RND.between(this.physics.world.bounds.width+32, this.physics.world.bounds.width);
+          let powerUpY = Phaser.Math.RND.between(20,this.physics.world.bounds.height-20);
+          var powerUpMove = Phaser.Math.RND.between(-25, -45);
+          this.powerUpDual = this.physics.add.sprite(powerUpX, powerUpY, 'powerUpDual', 0);
+          this.powerUpDual.displayWidth = config.width *.05;
+          this.powerUpDual.scaleY = this.enemyRedOne.scaleX;
+          this.powerUpDual.anims.play('powerUpDualAnim', true);
+          this.powerUpDual.setVelocityX(powerUpMove);
+          this.physics.add.overlap(this.player, this.powerUpDual, dualGuns, null, this);
+        }
+
+        //call random powerup Dual
+        this.time.addEvent({delay: Phaser.Math.RND.between(1000*10, 7000*10), callback: powerUps, callbackScope: this, loop: true});
+
 
         //collision red enemy with player
         function enemyRedCollision(player, enemyRedOne){
@@ -182,29 +202,6 @@ var WorldScene = new Phaser.Class({
             this.scene.restart();
           }, [], this);
         }
-
-        //collision animation
-        this.anims.create({
-          key: 'playerCollision',
-          frames: this.anims.generateFrameNumbers('playerShipExplosion', {frames: [1,2,3,4,5]}),
-          frameRate: 10,
-          repeat: 0
-        });
-
-        //enemy Shot animation
-        this.anims.create({
-          key: 'enemyRedShot',
-          frames: this.anims.generateFrameNumbers('enemyRedShipExplosion', {frames: [1,2,3,4,5]}),
-          frameRate: 7,
-          repeat: 0
-        });
-
-        this.anims.create({
-          key: 'powerUpDualAnim',
-          frames: this.anims.generateFrameNumbers('powerUpDual', {frames: [1,2,3,4,5,6,7,8]}),
-          frameRate: 7,
-          repeat: -1
-        });
 
         //called when red enemy is shot
         function shotEnemy(bullets, enemyRedOne){
@@ -225,6 +222,7 @@ var WorldScene = new Phaser.Class({
           scoreText.setText('Score: ' + score);
         }
 
+        //called when dual bullet hits emenyRed
         function shotEnemySecond(bulletsTwo, enemyRedOne){
           enemyRedOne.anims.play('enemyRedShot', true);
           this.time.delayedCall(200, function(){
@@ -237,12 +235,10 @@ var WorldScene = new Phaser.Class({
           this.bulletsTwo.y = this.player.y;
           this.bulletsTwo.setVisible(false);
           this.bulletsTwo.setVelocityX(0);
+          //Update score
           score += 10;
           scoreText.setText('Score: ' + score);
         }
-
-
-
 
         //called when bullet hits comet
         function shotRock(bullets, rocks){
@@ -252,13 +248,13 @@ var WorldScene = new Phaser.Class({
           this.bullets.setVelocityX(0);
         }
 
+        //called when dual bullet hits comet
         function shotRockSecond(bulletsTwo, rocks){
           this.bulletsTwo.x = this.player.x;
           this.bulletsTwo.y = this. player.y
           this.bulletsTwo.setVisible(false);
           this.bulletsTwo.setVelocityX(0);
         }
-
 
         //Destroys red enemys when they reach edge of scene
         function destroyObj(enemyRedOne){
@@ -267,28 +263,14 @@ var WorldScene = new Phaser.Class({
         }, [], this);
       }
 
-      //Destorys comets when the reach edge of scene
+        //Destorys comets when the reach edge of scene
         function destroyObjRock(rocks){
           this.time.delayedCall(100, function(){
             rocks.destroy();
           }, [], this);
         }
 
-        function powerUps(){
-          this.powerUpDual = this.physics.add.group();
-          let powerUpX = Phaser.Math.RND.between(this.physics.world.bounds.width+32, this.physics.world.bounds.width);
-          let powerUpY = Phaser.Math.RND.between(20,this.physics.world.bounds.height-20);
-          var powerUpMove = Phaser.Math.RND.between(-25, -45);
-          this.powerUpDual = this.physics.add.sprite(powerUpX, powerUpY, 'powerUpDual', 0);
-          this.powerUpDual.displayWidth = config.width *.05;
-          this.powerUpDual.scaleY = this.enemyRedOne.scaleX;
-          this.powerUpDual.anims.play('powerUpDualAnim', true);
-          this.powerUpDual.setVelocityX(powerUpMove);
-          this.physics.add.overlap(this.player, this.powerUpDual, dualGuns, null, this);
-        }
-
-        this.time.addEvent({delay: Phaser.Math.RND.between(1000*10, 7000*10), callback: powerUps, callbackScope: this, loop: true});
-
+        //destroy powerup Dual on collision
         function dualGuns(player, powerUpDual){
             this.time.delayedCall(200, function(){
               powerUpDual.destroy();
@@ -299,10 +281,35 @@ var WorldScene = new Phaser.Class({
             console.log("collected");
             this.bulletsTwo.setActive(true);
             this.player.setTexture('player', 2);
+            //update score when powerupDual collected
             score += 20;
             scoreText.setText('Score: ' + score);
-            
+
           }
+
+        //collision animation
+        this.anims.create({
+          key: 'playerCollision',
+          frames: this.anims.generateFrameNumbers('playerShipExplosion', {frames: [1,2,3,4,5]}),
+          frameRate: 10,
+          repeat: 0
+        });
+
+        //enemy Shot animation
+        this.anims.create({
+          key: 'enemyRedShot',
+          frames: this.anims.generateFrameNumbers('enemyRedShipExplosion', {frames: [1,2,3,4,5]}),
+          frameRate: 7,
+          repeat: 0
+        });
+
+        //powerup animation
+        this.anims.create({
+          key: 'powerUpDualAnim',
+          frames: this.anims.generateFrameNumbers('powerUpDual', {frames: [1,2,3,4,5,6,7,8]}),
+          frameRate: 7,
+          repeat: -1
+        });
 
         //allow movement
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -322,6 +329,7 @@ var WorldScene = new Phaser.Class({
         if(this.bullets.visible === false){
         this.bullets.x = this.player.x;
       }
+        //moves dual bullet if it is not fired
         if(this.bulletsTwo.visible === false){
         this.bulletsTwo.x = this.player.x;
       }
@@ -331,6 +339,7 @@ var WorldScene = new Phaser.Class({
         if(this.bullets.visible === false){
         this.bullets.x = this.player.x;
       }
+      //moves dual bullet if it is not fired
       if(this.bulletsTwo.visible === false){
       this.bulletsTwo.x = this.player.x;
       }
@@ -344,6 +353,7 @@ var WorldScene = new Phaser.Class({
         if(this.bullets.visible === false){
         this.bullets.y = this.player.y;
       }
+      //moves dual bullet if it is not fired
       if(this.bulletsTwo.visible === false){
       this.bulletsTwo.y = this.player.y;
       }
@@ -353,6 +363,7 @@ var WorldScene = new Phaser.Class({
         if(this.bullets.visible === false){
         this.bullets.y = this.player.y;
       }
+      //moves dual bullet if it is not fired
       if(this.bulletsTwo.visible === false){
       this.bulletsTwo.y = this.player.y;
       }
@@ -365,8 +376,10 @@ var WorldScene = new Phaser.Class({
           this.bullets.setVisible(true);
           this.bullets.setVelocityX(300);
         }
+        //shoot dual bullets on spacebar if dual has been collected
         if(this.bulletsTwo.visible === false && this.bulletsTwo.active === true){
           this.bulletsTwo.x = this.player.x + 22;
+          //set the bullets apart
           this.bulletsTwo.y = this.player.y+ this.player.scaleY*7;
           this.bullets.y = this.player.y- this.player.scaleY*7
           this.bulletsTwo.setVisible(true);
@@ -382,6 +395,7 @@ var WorldScene = new Phaser.Class({
         this.bullets.setVelocityX(0);
         this.bullets.setVisible(false);
       }
+      //resets dual bullet when it leaves the screen
       if(this.bulletsTwo.x > this.physics.world.bounds.width){
         this.bulletsTwo.x = this.player.x;
         this.bulletsTwo.y = this.player.y;
